@@ -3,111 +3,73 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ホーム画面に追加案内</title>
   <style>
-    /* 共通設定 */
-    html, body { margin: 0; padding: 0; background: transparent; height: 100%; font-family: sans-serif; overflow: hidden; }
-
-    /* --- ① 小さな起動ボタン（初期状態） --- */
-    #pwa-start-btn {
-      position: fixed; top: 10px; right: 10px; /* 右上に配置 */
-      background-color: #333; /* ボタンの色（黒っぽく） */
-      color: #fff; border: none; padding: 8px 14px;
-      border-radius: 20px; font-size: 13px; font-weight: bold;
-      cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      z-index: 10; transition: background-color 0.3s;
-    }
-    #pwa-start-btn:hover { background-color: #555; }
-
-    /* --- ② モーダル（ポップアップ）全体 --- */
-    #pwa-modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.6); z-index: 9999;
-      display: none; /* 初期状態は非表示 */
-      justify-content: center; align-items: center;
-      opacity: 0; transition: opacity 0.4s;
-    }
-    /* 表示時のクラス */
-    #pwa-modal-overlay.active { display: flex; opacity: 1; }
-
-    /* モーダルの白い箱 */
-    .pwa-modal-content {
-      background: #fff; padding: 25px 20px 20px; border-radius: 12px;
-      width: 85%; max-width: 360px; position: relative;
-      text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      transform: translateY(20px); transition: transform 0.4s;
-    }
-    /* 表示時のアニメーション */
-    #pwa-modal-overlay.active .pwa-modal-content { transform: translateY(0); }
-
-    /* 閉じるボタン */
-    .pwa-close-btn { position: absolute; top: 8px; right: 12px; font-size: 24px; border: none; background: none; cursor: pointer; color: #888; padding: 0; }
-    .pwa-close-btn:hover { color: #333; }
-
-    /* 説明文エリア */
-    .pwa-instructions { background: #f7f7f7; padding: 15px; margin-top: 15px; border-radius: 8px; text-align: left; font-size: 14px; line-height: 1.6; color: #333; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #fdfdfd; height: 100%; font-family: sans-serif; display: flex; justify-content: center; align-items: center; }
+    .wrapper { width: 100%; height: 100%; padding: 15px; display: flex; justify-content: center; align-items: center; text-align: center; }
     
-    /* --- ③ 端末別の表示切り替え --- */
-    .os-info { display: none; } /* 初期状態は全部非表示 */
-    .os-info.active { display: block; } /* 該当するOSだけ表示 */
+    /* 初期ボタン */
+    .start-btn {
+      background: #222; color: #fff; border: none; padding: 14px 28px;
+      border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: 0.2s;
+    }
+    .start-btn:hover { background: #444; }
 
+    /* 案内カード */
+    .card {
+      display: none; background: #fff; border: 1px solid #eee; border-radius: 10px;
+      padding: 20px; width: 100%; height: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      position: relative; text-align: left; flex-direction: column; justify-content: center;
+    }
+    .card.active { display: flex; }
+    .close-btn { position: absolute; top: 10px; right: 15px; font-size: 22px; border: none; background: none; cursor: pointer; color: #aaa; }
+    
+    /* OS別判定テキスト */
+    .os-text { display: none; background: #f7f7f7; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.6; color: #333; margin-top: 10px; }
+    .os-text.active { display: block; }
   </style>
 </head>
 <body>
+  <div class="wrapper">
+    <!-- 最初に見えるボタン -->
+    <button id="start-btn" class="start-btn" onclick="openCard()">📱 ホーム画面に追加する方法を見る</button>
 
-  <!-- ① 小さな起動ボタン -->
-  <button id="pwa-start-btn" onclick="openPwaModal()">ホーム画面に追加</button>
+    <!-- ボタンを押すと枠内で広がる案内 -->
+    <div id="card" class="card">
+      <button class="close-btn" onclick="closeCard()">&times;</button>
+      <h3 style="margin: 0 0 6px 0; font-size: 16px; color: #222;">ホーム画面に追加</h3>
+      <p style="font-size: 12px; color: #666; margin: 0;">次回からアプリ感覚でサクサクアクセスできます！</p>
 
-  <!-- ② モーダル全体 -->
-  <div id="pwa-modal-overlay">
-    <div class="pwa-modal-content">
-      <button class="pwa-close-btn" onclick="closePwaModal()">&times;</button>
-      <h3 style="margin: 0 0 10px; font-size: 19px; color: #222;">ホーム画面に追加</h3>
-      <p style="font-size: 14px; color: #555; margin: 0;">アプリのようにサクサク開けるようになります！</p>
-      
-      <div class="pwa-instructions">
-        <!-- iOS (iPhone/iPad) 用の案内文 -->
-        <div id="ios-info" class="os-info">
-          <p style="margin: 0;"><b>【iPhone (Safari)】</b><br>画面下部の「共有ボタン（□↑）」をタップし、「ホーム画面に追加」を選択してください。</p>
-        </div>
-
-        <!-- Android 用の案内文 -->
-        <div id="android-info" class="os-info">
-          <p style="margin: 0;"><b>【Android (Chrome)】</b><br>ブラウザ右上のメニュー（︙）から「ホーム画面に追加」を選択してください。</p>
-        </div>
-
-        <!-- その他 (PCなど) 用の案内文 -->
-        <div id="other-info" class="os-info">
-          <p style="margin: 0;">スマートフォンのブラウザ（SafariまたはChrome）でこのページを開き、メニューから「ホーム画面に追加」を行ってください。</p>
-        </div>
+      <div id="ios-text" class="os-text">
+        <p style="margin:0;"><b>【iPhone (Safari)】</b><br>画面下部の「共有ボタン（□↑）」をタップし、「ホーム画面に追加」を選択してください。</p>
+      </div>
+      <div id="android-text" class="os-text">
+        <p style="margin:0;"><b>【Android (Chrome)】</b><br>ブラウザ右上のメニュー（︙）から「ホーム画面に追加」を選択してください。</p>
+      </div>
+      <div id="other-text" class="os-text">
+        <p style="margin:0;">スマホの標準ブラウザメニューから「ホーム画面に追加」を行ってください。</p>
       </div>
     </div>
   </div>
 
   <script>
-    // ページ読み込み時に端末（OS）を判定して案内文を切り替える
+    // OS判定
     document.addEventListener('DOMContentLoaded', function() {
-      const userAgent = navigator.userAgent;
-      let osType = 'other';
-
-      if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-        osType = 'ios';
-      } else if (/Android/.test(userAgent)) {
-        osType = 'android';
-      }
-
-      // 該当するOSの案内文だけを表示
-      document.getElementById(osType + '-info').classList.add('active');
+      var ua = navigator.userAgent;
+      var os = 'other';
+      if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) { os = 'ios'; }
+      else if (/Android/.test(ua)) { os = 'android'; }
+      document.getElementById(os + '-text').classList.add('active');
     });
 
-    // モーダルを開く関数
-    function openPwaModal() {
-      document.getElementById('pwa-modal-overlay').classList.add('active');
+    function openCard() {
+      document.getElementById('start-btn').style.display = 'none';
+      document.getElementById('card').classList.add('active');
     }
-
-    // モーダルを閉じる関数
-    function closePwaModal() {
-      document.getElementById('pwa-modal-overlay').classList.remove('active');
+    function closeCard() {
+      document.getElementById('card').classList.remove('active');
+      document.getElementById('start-btn').style.display = 'inline-block';
     }
   </script>
 </body>
