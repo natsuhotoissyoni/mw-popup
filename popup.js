@@ -1,22 +1,16 @@
 (function() {
-  // ① トップページでのみ表示させる設定
-  // URLのパスが「/」または「/index.html」以外なら処理をストップ
-  if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-    return; 
-  }
-
-  // ② すでに「閉じる」を押した人には二度と出さない設定（Local Storage）
+  // ① すでに「閉じる」を押した人には出さない設定（Local Storage）
   if (localStorage.getItem('pwaModalClosed')) {
     return; 
   }
 
-  // ③ CSS（デザイン）を生成してページに適用
+  // ② CSS（デザイン）を生成してページに適用
   const style = document.createElement('style');
   style.innerHTML = `
     /* 背景の暗いオーバーレイ */
     #pwa-install-modal {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.6); z-index: 9999;
+      background: rgba(0, 0, 0, 0.6); z-index: 99999;
       display: flex; justify-content: center; align-items: center;
       opacity: 0; transition: opacity 0.5s; /* フワッと表示させる */
     }
@@ -40,7 +34,7 @@
   `;
   document.head.appendChild(style);
 
-  // ④ HTML（ポップアップの中身）を生成してページに追加
+  // ③ HTML（ポップアップの中身）を生成してページに追加
   const modal = document.createElement('div');
   modal.id = 'pwa-install-modal';
   modal.innerHTML = `
@@ -56,12 +50,12 @@
   `;
   document.body.appendChild(modal);
 
-  // ⑤ 2秒後（2000ミリ秒後）にフワッと表示させる
+  // ④ 2秒後（2000ミリ秒後）にフワッと表示させる
   setTimeout(function() {
     modal.style.opacity = '1';
   }, 2000);
 
-  // ⑥ 「閉じるボタン」を押したときの動作
+  // ⑤ 「閉じるボタン」を押したときの動作
   document.getElementById('pwa-close-btn').addEventListener('click', function() {
     modal.style.opacity = '0'; // フワッと消す
     setTimeout(function() {
