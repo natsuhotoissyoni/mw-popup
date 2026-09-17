@@ -3,35 +3,111 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ホーム画面に追加案内</title>
   <style>
-    html, body { margin:0; padding:0; background:transparent; height:100%; overflow:hidden; font-family:sans-serif; }
-    .modal-bg {
+    /* 共通設定 */
+    html, body { margin: 0; padding: 0; background: transparent; height: 100%; font-family: sans-serif; overflow: hidden; }
+
+    /* --- ① 小さな起動ボタン（初期状態） --- */
+    #pwa-start-btn {
+      position: fixed; top: 10px; right: 10px; /* 右上に配置 */
+      background-color: #333; /* ボタンの色（黒っぽく） */
+      color: #fff; border: none; padding: 8px 14px;
+      border-radius: 20px; font-size: 13px; font-weight: bold;
+      cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      z-index: 10; transition: background-color 0.3s;
+    }
+    #pwa-start-btn:hover { background-color: #555; }
+
+    /* --- ② モーダル（ポップアップ）全体 --- */
+    #pwa-modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center;
+      background: rgba(0, 0, 0, 0.6); z-index: 9999;
+      display: none; /* 初期状態は非表示 */
+      justify-content: center; align-items: center;
+      opacity: 0; transition: opacity 0.4s;
     }
-    .modal-content {
-      background: #fff; padding: 20px; border-radius: 12px; width: 85%; max-width: 360px;
-      text-align: center; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    /* 表示時のクラス */
+    #pwa-modal-overlay.active { display: flex; opacity: 1; }
+
+    /* モーダルの白い箱 */
+    .pwa-modal-content {
+      background: #fff; padding: 25px 20px 20px; border-radius: 12px;
+      width: 85%; max-width: 360px; position: relative;
+      text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transform: translateY(20px); transition: transform 0.4s;
     }
-    .close-btn { position: absolute; top: 8px; right: 12px; font-size: 24px; border: none; background: none; cursor: pointer; color: #888; }
-    .info-box { background: #f7f7f7; padding: 12px; margin-top: 12px; border-radius: 6px; text-align: left; font-size: 13px; line-height: 1.6; color: #333; }
+    /* 表示時のアニメーション */
+    #pwa-modal-overlay.active .pwa-modal-content { transform: translateY(0); }
+
+    /* 閉じるボタン */
+    .pwa-close-btn { position: absolute; top: 8px; right: 12px; font-size: 24px; border: none; background: none; cursor: pointer; color: #888; padding: 0; }
+    .pwa-close-btn:hover { color: #333; }
+
+    /* 説明文エリア */
+    .pwa-instructions { background: #f7f7f7; padding: 15px; margin-top: 15px; border-radius: 8px; text-align: left; font-size: 14px; line-height: 1.6; color: #333; }
+    
+    /* --- ③ 端末別の表示切り替え --- */
+    .os-info { display: none; } /* 初期状態は全部非表示 */
+    .os-info.active { display: block; } /* 該当するOSだけ表示 */
+
   </style>
 </head>
 <body>
-  <div class="modal-bg" id="modal">
-    <div class="modal-content">
-      <button class="close-btn" onclick="closeModal()">&times;</button>
-      <h3 style="margin:0 0 10px; font-size:18px; color:#222;">ホーム画面に追加</h3>
-      <p style="font-size:13px; color:#555; margin:0;">このサイトをホーム画面に追加すると、次回からアプリ感覚でサクサク開けます！</p>
-      <div class="info-box">
-        <p style="margin:0 0 8px;"><b>【iPhone (Safari)】</b><br>画面下部の「共有ボタン（□↑）」をタップし、「ホーム画面に追加」を選択</p>
-        <p style="margin:0;"><b>【Android】</b><br>ブラウザ右上のメニュー（︙）から「ホーム画面に追加」を選択</p>
+
+  <!-- ① 小さな起動ボタン -->
+  <button id="pwa-start-btn" onclick="openPwaModal()">ホーム画面に追加</button>
+
+  <!-- ② モーダル全体 -->
+  <div id="pwa-modal-overlay">
+    <div class="pwa-modal-content">
+      <button class="pwa-close-btn" onclick="closePwaModal()">&times;</button>
+      <h3 style="margin: 0 0 10px; font-size: 19px; color: #222;">ホーム画面に追加</h3>
+      <p style="font-size: 14px; color: #555; margin: 0;">アプリのようにサクサク開けるようになります！</p>
+      
+      <div class="pwa-instructions">
+        <!-- iOS (iPhone/iPad) 用の案内文 -->
+        <div id="ios-info" class="os-info">
+          <p style="margin: 0;"><b>【iPhone (Safari)】</b><br>画面下部の「共有ボタン（□↑）」をタップし、「ホーム画面に追加」を選択してください。</p>
+        </div>
+
+        <!-- Android 用の案内文 -->
+        <div id="android-info" class="os-info">
+          <p style="margin: 0;"><b>【Android (Chrome)】</b><br>ブラウザ右上のメニュー（︙）から「ホーム画面に追加」を選択してください。</p>
+        </div>
+
+        <!-- その他 (PCなど) 用の案内文 -->
+        <div id="other-info" class="os-info">
+          <p style="margin: 0;">スマートフォンのブラウザ（SafariまたはChrome）でこのページを開き、メニューから「ホーム画面に追加」を行ってください。</p>
+        </div>
       </div>
     </div>
   </div>
+
   <script>
-    function closeModal() {
-      document.getElementById('modal').style.display = 'none';
+    // ページ読み込み時に端末（OS）を判定して案内文を切り替える
+    document.addEventListener('DOMContentLoaded', function() {
+      const userAgent = navigator.userAgent;
+      let osType = 'other';
+
+      if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+        osType = 'ios';
+      } else if (/Android/.test(userAgent)) {
+        osType = 'android';
+      }
+
+      // 該当するOSの案内文だけを表示
+      document.getElementById(osType + '-info').classList.add('active');
+    });
+
+    // モーダルを開く関数
+    function openPwaModal() {
+      document.getElementById('pwa-modal-overlay').classList.add('active');
+    }
+
+    // モーダルを閉じる関数
+    function closePwaModal() {
+      document.getElementById('pwa-modal-overlay').classList.remove('active');
     }
   </script>
 </body>
