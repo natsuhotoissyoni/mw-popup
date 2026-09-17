@@ -5,56 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: #fdfdfd; height: 100%; font-family: sans-serif; display: flex; justify-content: center; align-items: center; }
-    .wrapper { width: 100%; height: 100%; padding: 15px; display: flex; justify-content: center; align-items: center; text-align: center; }
+    html, body { margin: 0; padding: 0; background: transparent; height: 100%; font-family: sans-serif; overflow: hidden; }
     
-    /* 初期ボタン */
+    /* 右下に寄せる配置 */
+    .wrapper {
+      width: 100%; height: 100%; padding: 10px;
+      display: flex; justify-content: flex-end; align-items: flex-end;
+    }
+    
+    /* 最初に見える追従ボタン */
     .start-btn {
-      background: #222; color: #fff; border: none; padding: 14px 28px;
-      border-radius: 30px; font-size: 15px; font-weight: bold; cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: 0.2s;
+      background: #222; color: #fff; border: none; padding: 12px 18px;
+      border-radius: 25px; font-size: 13px; font-weight: bold; cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.2s; white-space: nowrap;
     }
     .start-btn:hover { background: #444; }
 
-    /* 案内カード */
+    /* 開く案内カード */
     .card {
-      display: none; background: #fff; border: 1px solid #eee; border-radius: 10px;
-      padding: 20px; width: 100%; height: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: none; background: #fff; border: 1px solid #eee; border-radius: 12px;
+      padding: 16px; width: 100%; height: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
       position: relative; text-align: left; flex-direction: column; justify-content: center;
     }
     .card.active { display: flex; }
-    .close-btn { position: absolute; top: 10px; right: 15px; font-size: 22px; border: none; background: none; cursor: pointer; color: #aaa; }
+    .close-btn { position: absolute; top: 6px; right: 10px; font-size: 20px; border: none; background: none; cursor: pointer; color: #aaa; }
     
     /* OS別判定テキスト */
-    .os-text { display: none; background: #f7f7f7; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.6; color: #333; margin-top: 10px; }
+    .os-text { display: none; background: #f7f7f7; padding: 10px; border-radius: 6px; font-size: 12px; line-height: 1.5; color: #333; margin-top: 8px; }
     .os-text.active { display: block; }
   </style>
 </head>
 <body>
   <div class="wrapper">
-    <!-- 最初に見えるボタン -->
-    <button id="start-btn" class="start-btn" onclick="openCard()">📱 ホーム画面に追加する方法を見る</button>
+    <!-- 最初に見える右下ボタン -->
+    <button id="start-btn" class="start-btn" onclick="openCard()">📱 ホーム画面に追加</button>
 
-    <!-- ボタンを押すと枠内で広がる案内 -->
+    <!-- ボタンを押すと現れるカード -->
     <div id="card" class="card">
       <button class="close-btn" onclick="closeCard()">&times;</button>
-      <h3 style="margin: 0 0 6px 0; font-size: 16px; color: #222;">ホーム画面に追加</h3>
-      <p style="font-size: 12px; color: #666; margin: 0;">次回からアプリ感覚でサクサクアクセスできます！</p>
+      <h3 style="margin: 0 0 4px 0; font-size: 15px; color: #222;">ホーム画面に追加</h3>
+      <p style="font-size: 11px; color: #666; margin: 0;">次回からアプリ感覚で開けます！</p>
 
       <div id="ios-text" class="os-text">
-        <p style="margin:0;"><b>【iPhone (Safari)】</b><br>画面下部の「共有ボタン（□↑）」をタップし、「ホーム画面に追加」を選択してください。</p>
+        <p style="margin:0;"><b>【iPhone (Safari)】</b><br>下部の「共有ボタン（□↑）」→「ホーム画面に追加」</p>
       </div>
       <div id="android-text" class="os-text">
-        <p style="margin:0;"><b>【Android (Chrome)】</b><br>ブラウザ右上のメニュー（︙）から「ホーム画面に追加」を選択してください。</p>
+        <p style="margin:0;"><b>【Android (Chrome)】</b><br>右上のメニュー（︙）→「ホーム画面に追加」</p>
       </div>
       <div id="other-text" class="os-text">
-        <p style="margin:0;">スマホの標準ブラウザメニューから「ホーム画面に追加」を行ってください。</p>
+        <p style="margin:0;">ブラウザメニューから「ホーム画面に追加」を選択してください。</p>
       </div>
     </div>
   </div>
 
   <script>
-    // OS判定
     document.addEventListener('DOMContentLoaded', function() {
       var ua = navigator.userAgent;
       var os = 'other';
