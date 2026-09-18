@@ -5,18 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ホーム画面・お気に入り追加のご案内</title>
   <style>
-    /* --- ポップアップ全体・透過制御用CSS --- */
     * { box-sizing: border-box; }
     html, body {
       margin: 0; padding: 0; background: transparent;
       width: 100vw; height: 100vh; overflow: hidden;
       font-family: sans-serif;
-      pointer-events: none; /* ボタン以外の透明部分のクリックを下のサイトへ通過させる */
+      pointer-events: none;
     }
 
-    /* 右下追従ボタン */
+    /* 右下ボタンの位置・デザイン調整 */
     .pwa-trigger-btn {
-      position: fixed; bottom: 20px; right: 20px;
+      position: fixed; bottom: 24px; right: 24px;
       background: #b8446a; color: #fff; border: none; padding: 12px 22px;
       border-radius: 30px; font-size: 14px; font-weight: bold; cursor: pointer;
       box-shadow: 0 4px 15px rgba(0,0,0,0.25); transition: 0.2s;
@@ -24,34 +23,35 @@
     }
     .pwa-trigger-btn:hover { background: #9e3758; }
 
-    /* モーダル背景（暗転エリア） */
+    /* モーダル背景（黒の半透明オーバーレイ） */
     .pwa-modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.55);
       display: none; justify-content: center; align-items: center;
-      padding: 15px; z-index: 9999; pointer-events: auto;
+      padding: 16px; z-index: 9999; pointer-events: auto;
     }
     .pwa-modal-overlay.active { display: flex; }
 
-    /* モーダルの中身（スクロール対応） */
-    .pwa-modal-container {
+    /* ポップアップ本体の横幅・高さを適切に制限 */
+    .pwa-modal-card {
       position: relative; width: 100%; max-width: 680px;
-      max-height: 90vh; overflow-y: auto; border-radius: 14px;
+      max-height: 90vh; overflow-y: auto; background: #fbf8f9;
+      border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
     /* 閉じる（×）ボタン */
     .pwa-modal-close {
-      position: absolute; top: 18px; right: 20px; font-size: 28px;
+      position: absolute; top: 18px; right: 20px; font-size: 26px;
       border: none; background: none; cursor: pointer;
-      color: var(--glo-muted, #6a6065); z-index: 100; line-height: 1;
+      color: #6a6065; z-index: 100; line-height: 1; padding: 0;
     }
-    .pwa-modal-close:hover { color: var(--glo-text, #1a1517); }
+    .pwa-modal-close:hover { color: #1a1517; }
 
-    /* 提示されたコードのレイアウト微調整 */
-    .glo-bm { margin: 0 auto !important; }
+    /* 提供パーツ内のマージン調整 */
+    .glo-bm { margin: 0 !important; border: none !important; }
 
 /* -------------------------------------------------------------------
-   以下、提示されたCSSコード
+   提供されたCSS
    ------------------------------------------------------------------- */
 .glo-bm{
   --glo-bg:#fbf8f9;       /* パーツの背景 */
@@ -170,7 +170,6 @@
 .glo-bm #glo-bm-pc:checked      ~ .glo-bm-tabs label[for="glo-bm-pc"]      .glo-bm-state{
   opacity:.9;
 }
-/* キーボード操作でも位置が分かるように */
 .glo-bm #glo-bm-ios:focus-visible      ~ .glo-bm-tabs label[for="glo-bm-ios"],
 .glo-bm #glo-bm-android:focus-visible ~ .glo-bm-tabs label[for="glo-bm-android"],
 .glo-bm #glo-bm-pc:focus-visible      ~ .glo-bm-tabs label[for="glo-bm-pc"]{
@@ -258,71 +257,72 @@
   .glo-bm .glo-bm-title{font-size:19px;}
   .glo-bm .glo-bm-tab{font-size:13px;padding:12px 4px 10px;}
 }
-@media (prefers-reduced-motion:reduce){
-  .glo-bm *{transition:none !important;}
-}
   </style>
 </head>
 <body>
 
-  <!-- 右下ボタン -->
+  <!-- 右下追従ボタン -->
   <button id="pwa-trigger-btn" class="pwa-trigger-btn" onclick="openModal()">📱 追加方法を見る</button>
 
-  <!-- モーダルポップアップ本体 -->
+  <!-- ポップアップ本体 -->
   <div id="pwa-modal-overlay" class="pwa-modal-overlay">
-    <div class="pwa-modal-container">
+    <div class="pwa-modal-card">
       <button class="pwa-modal-close" onclick="closeModal()">&times;</button>
       
-      <!-- ▼ 提示されたHTMLコード ▼ -->
+      <!-- 提供されたHTML -->
       <div class="glo-bm">
-      <h2 class="glo-bm-title">ページをホーム画面やお気に入りに追加するには？</h2>
+        <h2 class="glo-bm-title">ページをホーム画面やお気に入りに追加するには？</h2>
 
-      <p class="glo-bm-lead">スマートフォンならホーム画面に追加、パソコンならブックマーク（お気に入り）に登録しておけば、すぐにこのページへ戻ってこられます。アプリのインストールは不要で、容量もほとんど使いません。</p>
+        <p class="glo-bm-lead">スマートフォンならホーム画面に追加、パソコンならブックマーク（お気に入り）に登録しておけば、すぐにこのページへ戻ってこられます。アプリのインストールは不要で、容量もほとんど使いません。</p>
 
-      <p class="glo-bm-label">▼ お使いの端末をタップすると、手順が切り替わります</p>
-      <input checked="checked" class="glo-bm-radio" id="glo-bm-ios" name="glo-bm-device" type="radio" /> <input class="glo-bm-radio" id="glo-bm-android" name="glo-bm-device" type="radio" /> <input class="glo-bm-radio" id="glo-bm-pc" name="glo-bm-device" type="radio" />
-      <div class="glo-bm-tabs"><label class="glo-bm-tab" for="glo-bm-ios"><svg aria-hidden="true" viewbox="0 0 24 24"><rect height="20" rx="2" width="10" x="7" y="2"></rect><line x1="10.5" x2="13.5" y1="18.5" y2="18.5"></line></svg> iPhone<span class="glo-bm-state">選択中</span> </label> <label class="glo-bm-tab" for="glo-bm-android"> <svg aria-hidden="true" viewbox="0 0 24 24"><rect height="20" rx="2" width="10" x="7" y="2"></rect><line x1="10.5" x2="13.5" y1="18.5" y2="18.5"></line></svg> Android<span class="glo-bm-state">選択中</span> </label> <label class="glo-bm-tab" for="glo-bm-pc"> <svg aria-hidden="true" viewbox="0 0 24 24"><rect height="12" rx="1.5" width="18" x="3" y="4"></rect><line x1="2" x2="22" y1="20" y2="20"></line></svg> パソコン<span class="glo-bm-state">選択中</span> </label></div>
+        <p class="glo-bm-label">▼ お使いの端末をタップすると、手順が切り替わります</p>
+        <input checked="checked" class="glo-bm-radio" id="glo-bm-ios" name="glo-bm-device" type="radio" /> 
+        <input class="glo-bm-radio" id="glo-bm-android" name="glo-bm-device" type="radio" /> 
+        <input class="glo-bm-radio" id="glo-bm-pc" name="glo-bm-device" type="radio" />
+        
+        <div class="glo-bm-tabs">
+          <label class="glo-bm-tab" for="glo-bm-ios"><svg aria-hidden="true" viewbox="0 0 24 24"><rect height="20" rx="2" width="10" x="7" y="2"></rect><line x1="10.5" x2="13.5" y1="18.5" y2="18.5"></line></svg> iPhone<span class="glo-bm-state">選択中</span> </label> 
+          <label class="glo-bm-tab" for="glo-bm-android"> <svg aria-hidden="true" viewbox="0 0 24 24"><rect height="20" rx="2" width="10" x="7" y="2"></rect><line x1="10.5" x2="13.5" y1="18.5" y2="18.5"></line></svg> Android<span class="glo-bm-state">選択中</span> </label> 
+          <label class="glo-bm-tab" for="glo-bm-pc"> <svg aria-hidden="true" viewbox="0 0 24 24"><rect height="12" rx="1.5" width="18" x="3" y="4"></rect><line x1="2" x2="22" y1="20" y2="20"></line></svg> パソコン<span class="glo-bm-state">選択中</span> </label>
+        </div>
 
-      <div class="glo-bm-panels">
-      <div class="glo-bm-panel glo-bm-panel-ios">
-      <ol class="glo-bm-steps">
-        <li><span class="glo-bm-num">1</span><span>画面の下（機種によっては上）にある共有ボタン（□に&uarr;のマーク）を押します</span></li>
-        <li><span class="glo-bm-num">2</span><span>メニューを下にスクロールして「ホーム画面に追加」を選びます</span></li>
-        <li><span class="glo-bm-num">3</span><span>右上の「追加」を押すと、ホーム画面にアイコンが並びます</span></li>
-      </ol>
+        <div class="glo-bm-panels">
+          <div class="glo-bm-panel glo-bm-panel-ios">
+            <ol class="glo-bm-steps">
+              <li><span class="glo-bm-num">1</span><span>画面の下（機種によっては上）にある共有ボタン（□に&uarr;のマーク）を押します</span></li>
+              <li><span class="glo-bm-num">2</span><span>メニューを下にスクロールして「ホーム画面に追加」を選びます</span></li>
+              <li><span class="glo-bm-num">3</span><span>右上の「追加」を押すと、ホーム画面にアイコンが並びます</span></li>
+            </ol>
+            <p class="glo-bm-note">※ Safari以外のブラウザでご覧の場合は、項目名が「ホーム画面に追加」ではないことがあります。見つからないときは、下のボタンでURLをコピーしてSafariで開いてください。</p>
+          </div>
 
-      <p class="glo-bm-note">※ Safari以外のブラウザでご覧の場合は、項目名が「ホーム画面に追加」ではないことがあります。見つからないときは、下のボタンでURLをコピーしてSafariで開いてください。</p>
+          <div class="glo-bm-panel glo-bm-panel-android">
+            <ol class="glo-bm-steps">
+              <li><span class="glo-bm-num">1</span><span>ブラウザ右上のメニュー（点が縦に3つ並んだマーク）を押します</span></li>
+              <li><span class="glo-bm-num">2</span><span>「ホーム画面に追加」または「アプリをインストール」を選びます</span></li>
+              <li><span class="glo-bm-num">3</span><span>確認の画面で「追加」を押すと、ホーム画面にアイコンが並びます</span></li>
+            </ol>
+            <p class="glo-bm-note">※ ブラウザの種類によって、表示される項目名が少し違うことがあります。</p>
+          </div>
+
+          <div class="glo-bm-panel glo-bm-panel-pc">
+            <ol class="glo-bm-steps">
+              <li><span class="glo-bm-num">1</span><span>アドレスバー右端の星のマーク（☆）を押します。キーボードなら Ctrl+D（Macは ⌘+D）でも同じです</span></li>
+              <li><span class="glo-bm-num">2</span><span>表示された画面で「完了」を押すと、ブックマーク（お気に入り）に登録されます</span></li>
+              <li><span class="glo-bm-num">3</span><span>次の回が公開されたら、ブックマークからこのページを開いてください</span></li>
+            </ol>
+            <p class="glo-bm-note">※ スマートフォンでご覧の皆様は、上のタブから端末を選んでください。ホーム画面へのアイコン追加をご案内します。</p>
+          </div>
+        </div>
+
+        <button class="glo-bm-copy" type="button"><svg aria-hidden="true" viewbox="0 0 24 24"><rect height="11" rx="2" width="11" x="9" y="9"></rect><path d="M5 15V5a2 2 0 0 1 2-2h8"></path></svg> <span class="glo-bm-copylabel">うまくいかないときはURLをコピー</span></button> 
+        <input aria-label="このページのURL" class="glo-bm-urlbox" readonly="readonly" type="text" />
       </div>
-
-      <div class="glo-bm-panel glo-bm-panel-android">
-      <ol class="glo-bm-steps">
-        <li><span class="glo-bm-num">1</span><span>ブラウザ右上のメニュー（点が縦に3つ並んだマーク）を押します</span></li>
-        <li><span class="glo-bm-num">2</span><span>「ホーム画面に追加」または「アプリをインストール」を選びます</span></li>
-        <li><span class="glo-bm-num">3</span><span>確認の画面で「追加」を押すと、ホーム画面にアイコンが並びます</span></li>
-      </ol>
-
-      <p class="glo-bm-note">※ ブラウザの種類によって、表示される項目名が少し違うことがあります。</p>
-      </div>
-
-      <div class="glo-bm-panel glo-bm-panel-pc">
-      <ol class="glo-bm-steps">
-        <li><span class="glo-bm-num">1</span><span>アドレスバー右端の星のマーク（☆）を押します。キーボードなら Ctrl+D（Macは ⌘+D）でも同じです</span></li>
-        <li><span class="glo-bm-num">2</span><span>表示された画面で「完了」を押すと、ブックマーク（お気に入り）に登録されます</span></li>
-        <li><span class="glo-bm-num">3</span><span>次の回が公開されたら、ブックマークからこのページを開いてください</span></li>
-      </ol>
-
-      <p class="glo-bm-note">※ スマートフォンでご覧の皆様は、上のタブから端末を選んでください。ホーム画面へのアイコン追加をご案内します。</p>
-      </div>
-      </div>
-      <button class="glo-bm-copy" type="button"><svg aria-hidden="true" viewbox="0 0 24 24"><rect height="11" rx="2" width="11" x="9" y="9"></rect><path d="M5 15V5a2 2 0 0 1 2-2h8"></path></svg> <span class="glo-bm-copylabel">うまくいかないときはURLをコピー</span></button> <input aria-label="このページのURL" class="glo-bm-urlbox" readonly="readonly" type="text" />
-      </div>
-      <!-- ▲ 提示されたHTMLコード ▲ -->
 
     </div>
   </div>
 
   <script>
-    // モーダル開閉制御
     function openModal() {
       document.getElementById('pwa-modal-overlay').classList.add('active');
       document.getElementById('pwa-trigger-btn').style.display = 'none';
@@ -333,7 +333,7 @@
     }
   </script>
 
-  <!-- ▼ 提示されたScriptコード ▼ -->
+  <!-- 提供された端末自動判定＆コピーJavaScript -->
   <script>
   (function(){
     var roots = document.querySelectorAll(".glo-bm");
