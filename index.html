@@ -44,9 +44,15 @@
     .pwa-modal-close:hover { color: #1a1517; }
 
     /* 案内カードだけを出すモード（新しいタブ／details方式の iframe 内） */
-    body.is-standalone { background: #fbf8f9; overflow: auto; }
-    body.is-standalone .pwa-modal-overlay { background: #fbf8f9; align-items: flex-start; padding: 0; }
-    body.is-standalone .pwa-modal-card { max-height: none; overflow: visible; box-shadow: none; border-radius: 0; }
+    body.is-standalone { background: #fbf8f9; }
+    body.is-standalone .pwa-modal-overlay {
+      background: #fbf8f9; align-items: flex-start; padding: 0;
+      overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    }
+    body.is-standalone .pwa-modal-card {
+      max-height: none; overflow: visible; box-shadow: none; border-radius: 0;
+      flex-shrink: 0; padding-bottom: 24px;
+    }
     body.is-standalone .pwa-modal-close { display: none; }
     body.is-standalone .pwa-trigger-btn { display: none; }
 
@@ -326,7 +332,6 @@
     var isEmbedded = (window.top !== window);
     var params     = new URLSearchParams(location.search);
 
-    // 案内カードだけを出すモード：単独タブで開いたとき、または ?standalone=1 が付いているとき
     var isStandalone = !isEmbedded || params.get("standalone") === "1";
 
     var parentUrl = params.get("page") || document.referrer || "";
