@@ -3,78 +3,424 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ホーム画面・お気に入り追加のご案内</title>
   <style>
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: transparent; height: 100%; font-family: sans-serif; overflow: hidden; }
-    
-    /* 右下に寄せる配置 */
-    .wrapper {
-      width: 100%; height: 100%; padding: 10px;
-      display: flex; justify-content: flex-end; align-items: flex-end;
+    html, body {
+      margin: 0; padding: 0; background: transparent;
+      width: 100%; height: 100%; overflow: hidden;
+      font-family: sans-serif;
     }
-    
-    /* 最初に見える追従ボタン */
-    .start-btn {
-      background: #222; color: #fff; border: none; padding: 12px 18px;
-      border-radius: 25px; font-size: 13px; font-weight: bold; cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.2s; white-space: nowrap;
-    }
-    .start-btn:hover { background: #444; }
 
-    /* 開く案内カード */
-    .card {
-      display: none; background: #fff; border: 1px solid #eee; border-radius: 12px;
-      padding: 16px; width: 100%; height: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-      position: relative; text-align: left; flex-direction: column; justify-content: center;
+    /* 右下ボタン（小さいiframeの状態では、iframe全体がこのボタンの置き場になります） */
+    .pwa-trigger-btn {
+      position: fixed; bottom: 16px; right: 16px;
+      background: #b8446a; color: #fff; border: none; padding: 12px 22px;
+      border-radius: 30px; font-size: 14px; font-weight: bold; cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.25); transition: 0.2s;
+      white-space: nowrap; z-index: 10;
     }
-    .card.active { display: flex; }
-    .close-btn { position: absolute; top: 6px; right: 10px; font-size: 20px; border: none; background: none; cursor: pointer; color: #aaa; }
-    
-    /* OS別判定テキスト */
-    .os-text { display: none; background: #f7f7f7; padding: 10px; border-radius: 6px; font-size: 12px; line-height: 1.5; color: #333; margin-top: 8px; }
-    .os-text.active { display: block; }
+    .pwa-trigger-btn:hover { background: #9e3758; }
+
+    /* モーダル背景 */
+    .pwa-modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      display: none; justify-content: center; align-items: center;
+      padding: 16px; z-index: 9999;
+    }
+    .pwa-modal-overlay.is-open { display: flex; }
+
+    /* ポップアップ本体 */
+    .pwa-modal-card {
+      position: relative; width: 100%; max-width: 680px;
+      max-height: 90%; overflow-y: auto; background: #fbf8f9;
+      border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .pwa-modal-close {
+      position: absolute; top: 18px; right: 20px; font-size: 26px;
+      border: none; background: none; cursor: pointer;
+      color: #6a6065; z-index: 100; line-height: 1; padding: 0;
+    }
+    .pwa-modal-close:hover { color: #1a1517; }
+
+    /* 単独ページ（新しいタブ）で開いたときは、暗い背景と×を出さない */
+    body.is-standalone { background: #fbf8f9; overflow: auto; }
+    body.is-standalone .pwa-modal-overlay { background: #fbf8f9; align-items: flex-start; }
+    body.is-standalone .pwa-modal-close { display: none; }
+    body.is-standalone .pwa-trigger-btn { display: none; }
+
+    .glo-bm { margin: 0 !important; border: none !important; }
+
+/* -------------------------------------------------------------------
+   提供されたCSS
+   ------------------------------------------------------------------- */
+.glo-bm{
+  --glo-bg:#fbf8f9;
+  --glo-panel:#ffffff;
+  --glo-line:#e3d9dd;
+  --glo-text:#1a1517;
+  --glo-muted:#6a6065;
+  --glo-accent:#b8446a;
+
+  background:var(--glo-bg);
+  color:var(--glo-text);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+  font-size:15px;
+  line-height:1.8;
+  border:1px solid var(--glo-line);
+  border-radius:14px;
+  padding:26px 20px 28px;
+  margin:32px auto;
+  max-width:680px;
+  -webkit-text-size-adjust:100%;
+}
+.glo-bm *{box-sizing:border-box;}
+
+.glo-bm .glo-bm-eyebrow{
+  display:block;
+  color:var(--glo-accent);
+  font-size:11px;
+  letter-spacing:.14em;
+  margin:0 0 10px;
+}
+.glo-bm .glo-bm-title{
+  margin:0 40px 14px 0;
+  padding:0;
+  border:none;
+  background:none;
+  color:var(--glo-text);
+  font-size:21px;
+  line-height:1.5;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+.glo-bm .glo-bm-lead{
+  margin:0 0 22px;
+  color:var(--glo-muted);
+  font-size:14px;
+  line-height:1.8;
+}
+.glo-bm .glo-bm-label{
+  margin:0 0 10px;
+  color:var(--glo-text);
+  font-size:13px;
+}
+
+.glo-bm .glo-bm-radio{
+  position:absolute;
+  width:1px;
+  height:1px;
+  margin:-1px;
+  padding:0;
+  border:0;
+  opacity:0;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+}
+
+.glo-bm .glo-bm-tabs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin:0 0 20px;
+}
+.glo-bm .glo-bm-tab{
+  display:block;
+  background:var(--glo-panel);
+  border:1px solid var(--glo-line);
+  border-radius:12px;
+  color:var(--glo-text);
+  font-size:14px;
+  font-weight:600;
+  line-height:1.4;
+  padding:14px 6px 12px;
+  text-align:center;
+  cursor:pointer;
+  user-select:none;
+  transition:background .15s ease, border-color .15s ease;
+}
+.glo-bm .glo-bm-tab svg{
+  display:block;
+  width:20px;
+  height:20px;
+  margin:0 auto 6px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:1.6;
+}
+.glo-bm .glo-bm-tab:hover{border-color:#c9a9b5;}
+.glo-bm .glo-bm-state{
+  display:block;
+  margin-top:2px;
+  font-size:10px;
+  font-weight:400;
+  opacity:0;
+}
+
+.glo-bm #glo-bm-ios:checked      ~ .glo-bm-tabs label[for="glo-bm-ios"],
+.glo-bm #glo-bm-android:checked ~ .glo-bm-tabs label[for="glo-bm-android"],
+.glo-bm #glo-bm-pc:checked      ~ .glo-bm-tabs label[for="glo-bm-pc"]{
+  background:var(--glo-accent);
+  border-color:var(--glo-accent);
+  color:#fff;
+}
+.glo-bm #glo-bm-ios:checked      ~ .glo-bm-tabs label[for="glo-bm-ios"]     .glo-bm-state,
+.glo-bm #glo-bm-android:checked ~ .glo-bm-tabs label[for="glo-bm-android"] .glo-bm-state,
+.glo-bm #glo-bm-pc:checked      ~ .glo-bm-tabs label[for="glo-bm-pc"]      .glo-bm-state{
+  opacity:.9;
+}
+.glo-bm #glo-bm-ios:focus-visible      ~ .glo-bm-tabs label[for="glo-bm-ios"],
+.glo-bm #glo-bm-android:focus-visible ~ .glo-bm-tabs label[for="glo-bm-android"],
+.glo-bm #glo-bm-pc:focus-visible      ~ .glo-bm-tabs label[for="glo-bm-pc"]{
+  outline:2px solid var(--glo-accent);
+  outline-offset:2px;
+}
+
+.glo-bm .glo-bm-panel{display:none;}
+.glo-bm #glo-bm-ios:checked      ~ .glo-bm-panels .glo-bm-panel-ios,
+.glo-bm #glo-bm-android:checked ~ .glo-bm-panels .glo-bm-panel-android,
+.glo-bm #glo-bm-pc:checked      ~ .glo-bm-panels .glo-bm-panel-pc{
+  display:block;
+}
+
+.glo-bm .glo-bm-steps{
+  list-style:none;
+  margin:0 0 18px;
+  padding:0;
+  min-height:150px;
+}
+.glo-bm .glo-bm-steps li{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  margin:0;
+  padding:10px 0;
+  border-bottom:1px solid var(--glo-line);
+  font-size:14px;
+  line-height:1.8;
+}
+.glo-bm .glo-bm-steps li:last-child{border-bottom:none;}
+.glo-bm .glo-bm-num{
+  flex:0 0 22px;
+  width:22px;
+  height:22px;
+  margin-top:3px;
+  border:1px solid var(--glo-accent);
+  border-radius:50%;
+  color:var(--glo-accent);
+  font-size:11px;
+  line-height:20px;
+  text-align:center;
+}
+.glo-bm .glo-bm-note{
+  margin:0 0 22px;
+  color:var(--glo-muted);
+  font-size:12.5px;
+  line-height:1.7;
+}
+
+.glo-bm .glo-bm-copy{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:var(--glo-panel);
+  border:1px solid var(--glo-line);
+  border-radius:12px;
+  color:var(--glo-text);
+  font-family:inherit;
+  font-size:13px;
+  padding:12px 18px;
+  cursor:pointer;
+}
+.glo-bm .glo-bm-copy:hover{border-color:#c9a9b5;}
+.glo-bm .glo-bm-copy:focus-visible{outline:2px solid var(--glo-accent);outline-offset:2px;}
+.glo-bm .glo-bm-copy svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.6;}
+
+.glo-bm .glo-bm-urlbox{
+  display:none;
+  width:100%;
+  margin-top:10px;
+  background:var(--glo-panel);
+  border:1px solid var(--glo-line);
+  border-radius:8px;
+  color:var(--glo-text);
+  font-family:inherit;
+  font-size:12px;
+  padding:10px;
+}
+.glo-bm .glo-bm-urlbox.is-shown{display:block;}
+
+@media (max-width:420px){
+  .glo-bm{padding:22px 16px 24px;margin:24px auto;}
+  .glo-bm .glo-bm-title{font-size:19px;}
+  .glo-bm .glo-bm-tab{font-size:13px;padding:12px 4px 10px;}
+}
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <!-- 最初に見える右下ボタン -->
-    <button id="start-btn" class="start-btn" onclick="openCard()">📱 ホーム画面に追加</button>
 
-    <!-- ボタンを押すと現れるカード -->
-    <div id="card" class="card">
-      <button class="close-btn" onclick="closeCard()">&times;</button>
-      <h3 style="margin: 0 0 4px 0; font-size: 15px; color: #222;">ホーム画面に追加</h3>
-      <p style="font-size: 11px; color: #666; margin: 0;">次回からアプリ感覚で開けます！</p>
+  <button id="pwa-trigger-btn" class="pwa-trigger-btn" type="button">📱 追加方法を見る</button>
 
-      <div id="ios-text" class="os-text">
-        <p style="margin:0;"><b>【iPhone (Safari)】</b><br>下部の「共有ボタン（□↑）」→「ホーム画面に追加」</p>
+  <div id="pwa-modal-overlay" class="pwa-modal-overlay">
+    <div class="pwa-modal-card">
+      <button id="pwa-modal-close" class="pwa-modal-close" type="button" aria-label="閉じる">&times;</button>
+
+      <div class="glo-bm">
+        <h2 class="glo-bm-title">ページをホーム画面やお気に入りに追加するには？</h2>
+
+        <p class="glo-bm-lead">スマートフォンならホーム画面に追加、パソコンならブックマーク（お気に入り）に登録しておけば、すぐにこのページへ戻ってこられます。アプリのインストールは不要で、容量もほとんど使いません。</p>
+
+        <p class="glo-bm-label">▼ お使いの端末をタップすると、手順が切り替わります</p>
+        <input checked="checked" class="glo-bm-radio" id="glo-bm-ios" name="glo-bm-device" type="radio" />
+        <input class="glo-bm-radio" id="glo-bm-android" name="glo-bm-device" type="radio" />
+        <input class="glo-bm-radio" id="glo-bm-pc" name="glo-bm-device" type="radio" />
+
+        <div class="glo-bm-tabs">
+          <label class="glo-bm-tab" for="glo-bm-ios"><svg aria-hidden="true" viewBox="0 0 24 24"><rect height="20" rx="2" width="10" x="7" y="2"></rect><line x1="10.5" x2="13.5" y1="18.5" y2="18.5"></line></svg> iPhone<span class="glo-bm-state">選択中</span></label>
+          <label class="glo-bm-tab" for="glo-bm-android"><svg aria-hidden="true" viewBox="0 0 24 24"><rect height="20" rx="2" width="10" x="7" y="2"></rect><line x1="10.5" x2="13.5" y1="18.5" y2="18.5"></line></svg> Android<span class="glo-bm-state">選択中</span></label>
+          <label class="glo-bm-tab" for="glo-bm-pc"><svg aria-hidden="true" viewBox="0 0 24 24"><rect height="12" rx="1.5" width="18" x="3" y="4"></rect><line x1="2" x2="22" y1="20" y2="20"></line></svg> パソコン<span class="glo-bm-state">選択中</span></label>
+        </div>
+
+        <div class="glo-bm-panels">
+          <div class="glo-bm-panel glo-bm-panel-ios">
+            <ol class="glo-bm-steps">
+              <li><span class="glo-bm-num">1</span><span>画面の下（機種によっては上）にある共有ボタン（□に&uarr;のマーク）を押します</span></li>
+              <li><span class="glo-bm-num">2</span><span>メニューを下にスクロールして「ホーム画面に追加」を選びます</span></li>
+              <li><span class="glo-bm-num">3</span><span>右上の「追加」を押すと、ホーム画面にアイコンが並びます</span></li>
+            </ol>
+            <p class="glo-bm-note">※ Safari以外のブラウザでご覧の場合は、項目名が「ホーム画面に追加」ではないことがあります。見つからないときは、下のボタンでURLをコピーしてSafariで開いてください。</p>
+          </div>
+
+          <div class="glo-bm-panel glo-bm-panel-android">
+            <ol class="glo-bm-steps">
+              <li><span class="glo-bm-num">1</span><span>ブラウザ右上のメニュー（点が縦に3つ並んだマーク）を押します</span></li>
+              <li><span class="glo-bm-num">2</span><span>「ホーム画面に追加」または「アプリをインストール」を選びます</span></li>
+              <li><span class="glo-bm-num">3</span><span>確認の画面で「追加」を押すと、ホーム画面にアイコンが並びます</span></li>
+            </ol>
+            <p class="glo-bm-note">※ ブラウザの種類によって、表示される項目名が少し違うことがあります。</p>
+          </div>
+
+          <div class="glo-bm-panel glo-bm-panel-pc">
+            <ol class="glo-bm-steps">
+              <li><span class="glo-bm-num">1</span><span>アドレスバー右端の星のマーク（☆）を押します。キーボードなら Ctrl+D（Macは ⌘+D）でも同じです</span></li>
+              <li><span class="glo-bm-num">2</span><span>表示された画面で「完了」を押すと、ブックマーク（お気に入り）に登録されます</span></li>
+              <li><span class="glo-bm-num">3</span><span>次の回が公開されたら、ブックマークからこのページを開いてください</span></li>
+            </ol>
+            <p class="glo-bm-note">※ スマートフォンでご覧の皆様は、上のタブから端末を選んでください。ホーム画面へのアイコン追加をご案内します。</p>
+          </div>
+        </div>
+
+        <button class="glo-bm-copy" type="button"><svg aria-hidden="true" viewBox="0 0 24 24"><rect height="11" rx="2" width="11" x="9" y="9"></rect><path d="M5 15V5a2 2 0 0 1 2-2h8"></path></svg> <span class="glo-bm-copylabel">うまくいかないときはURLをコピー</span></button>
+        <input aria-label="このページのURL" class="glo-bm-urlbox" readonly="readonly" type="text" />
       </div>
-      <div id="android-text" class="os-text">
-        <p style="margin:0;"><b>【Android (Chrome)】</b><br>右上のメニュー（︙）→「ホーム画面に追加」</p>
-      </div>
-      <div id="other-text" class="os-text">
-        <p style="margin:0;">ブラウザメニューから「ホーム画面に追加」を選択してください。</p>
-      </div>
+
     </div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      var ua = navigator.userAgent;
-      var os = 'other';
-      if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) { os = 'ios'; }
-      else if (/Android/.test(ua)) { os = 'android'; }
-      document.getElementById(os + '-text').classList.add('active');
+  (function(){
+    var TARGET_ID  = "mw-popup";   // 親ページ側の div の id と一致させる
+    var SMALL_MAX  = 300;          // これより縦が小さければ「ボタンだけの状態」とみなす
+
+    var isEmbedded = (window.top !== window);
+    var params     = new URLSearchParams(location.search);
+
+    // 親ページのURL。?page= で明示指定があればそれを優先、なければリファラー
+    var parentUrl = params.get("page") || document.referrer || "";
+    parentUrl = parentUrl.split("#")[0];
+
+    var btn      = document.getElementById("pwa-trigger-btn");
+    var overlay  = document.getElementById("pwa-modal-overlay");
+    var closeBtn = document.getElementById("pwa-modal-close");
+
+    function isExpanded(){ return window.innerHeight > SMALL_MAX; }
+    function showModal(){ overlay.classList.add("is-open"); btn.style.display = "none"; }
+    function hideModal(){ overlay.classList.remove("is-open"); btn.style.display = ""; }
+
+    // iframeのサイズに合わせて開閉を同期
+    function sync(){
+      if (!isEmbedded) return;
+      if (isExpanded()) showModal(); else hideModal();
+    }
+
+    function openStandalone(){
+      window.open(location.origin + location.pathname + "?standalone=1", "_blank", "noopener");
+    }
+
+    function navigateTop(hash){
+      try { window.top.location.href = parentUrl + hash; return true; }
+      catch (e) { return false; }
+    }
+
+    // 単独ページとして開かれた場合
+    if (!isEmbedded) {
+      document.body.classList.add("is-standalone");
+      showModal();
+    }
+
+    btn.addEventListener("click", function(){
+      if (!isEmbedded) { showModal(); return; }
+      if (!parentUrl || !navigateTop("#" + TARGET_ID)) { openStandalone(); return; }
+      // 親側の <style> が効いていれば iframe が広がる。広がらなければ新しいタブで案内
+      setTimeout(function(){ if (!isExpanded()) openStandalone(); }, 500);
     });
 
-    function openCard() {
-      document.getElementById('start-btn').style.display = 'none';
-      document.getElementById('card').classList.add('active');
-    }
-    function closeCard() {
-      document.getElementById('card').classList.remove('active');
-      document.getElementById('start-btn').style.display = 'inline-block';
-    }
+    closeBtn.addEventListener("click", function(){
+      if (!isEmbedded) { hideModal(); return; }
+      if (!navigateTop("#")) hideModal();
+    });
+
+    overlay.addEventListener("click", function(e){
+      if (e.target === overlay) closeBtn.click();
+    });
+
+    window.addEventListener("resize", sync);
+    sync();
+
+    // ---- 端末自動判定＆URLコピー ----
+    var roots = document.querySelectorAll(".glo-bm");
+    var root  = roots[roots.length - 1];
+    if (!root) return;
+
+    var ua = navigator.userAgent;
+    var device = "pc";
+    if (/iPhone|iPad|iPod/.test(ua)) device = "ios";
+    else if (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) device = "ios";
+    else if (/Android/.test(ua)) device = "android";
+
+    var radio = root.querySelector("#glo-bm-" + device);
+    if (radio) radio.checked = true;
+
+    var copyBtn   = root.querySelector(".glo-bm-copy");
+    var copyLabel = root.querySelector(".glo-bm-copylabel");
+    var urlbox    = root.querySelector(".glo-bm-urlbox");
+    if (!copyBtn) return;
+
+    copyBtn.addEventListener("click", function(){
+      var url = parentUrl || location.href.split("#")[0];
+      var done = function(){
+        copyLabel.textContent = "コピーしました";
+        setTimeout(function(){
+          copyLabel.textContent = "うまくいかないときはURLをコピー";
+        }, 2000);
+      };
+      var fallback = function(){
+        urlbox.value = url;
+        urlbox.classList.add("is-shown");
+        urlbox.select();
+        copyLabel.textContent = "下のURLを長押しでコピーしてください";
+      };
+      if (navigator.clipboard && window.isSecureContext){
+        navigator.clipboard.writeText(url).then(done).catch(fallback);
+      } else {
+        fallback();
+      }
+    });
+  })();
   </script>
+
 </body>
 </html>
