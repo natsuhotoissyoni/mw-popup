@@ -12,7 +12,6 @@
       font-family: sans-serif;
     }
 
-    /* 右下ボタン（小さいiframeの状態では、iframe全体がこのボタンの置き場になります） */
     .pwa-trigger-btn {
       position: fixed; bottom: 16px; right: 16px;
       background: #b8446a; color: #fff; border: none; padding: 12px 22px;
@@ -22,7 +21,6 @@
     }
     .pwa-trigger-btn:hover { background: #9e3758; }
 
-    /* モーダル背景 */
     .pwa-modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.55);
@@ -31,7 +29,6 @@
     }
     .pwa-modal-overlay.is-open { display: flex; }
 
-    /* ポップアップ本体 */
     .pwa-modal-card {
       position: relative; width: 100%; max-width: 680px;
       max-height: 90%; overflow-y: auto; background: #fbf8f9;
@@ -46,9 +43,10 @@
     }
     .pwa-modal-close:hover { color: #1a1517; }
 
-    /* 単独ページ（新しいタブ）で開いたときは、暗い背景と×を出さない */
+    /* 案内カードだけを出すモード（新しいタブ／details方式の iframe 内） */
     body.is-standalone { background: #fbf8f9; overflow: auto; }
-    body.is-standalone .pwa-modal-overlay { background: #fbf8f9; align-items: flex-start; }
+    body.is-standalone .pwa-modal-overlay { background: #fbf8f9; align-items: flex-start; padding: 0; }
+    body.is-standalone .pwa-modal-card { max-height: none; overflow: visible; box-shadow: none; border-radius: 0; }
     body.is-standalone .pwa-modal-close { display: none; }
     body.is-standalone .pwa-trigger-btn { display: none; }
 
@@ -322,13 +320,15 @@
 
   <script>
   (function(){
-    var TARGET_ID  = "mw-popup";   // 親ページ側の div の id と一致させる
-    var SMALL_MAX  = 300;          // これより縦が小さければ「ボタンだけの状態」とみなす
+    var TARGET_ID  = "mw-popup";
+    var SMALL_MAX  = 300;
 
     var isEmbedded = (window.top !== window);
     var params     = new URLSearchParams(location.search);
 
-    // 親ページのURL。?page= で明示指定があればそれを優先、なければリファラー
+    // 案内カードだけを出すモード：単独タブで開いたとき、または ?standalone=1 が付いているとき
+    var isStandalone = !isEmbedded || params.get("standalone") === "1";
+
     var parentUrl = params.get("page") || document.referrer || "";
     parentUrl = parentUrl.split("#")[0];
 
@@ -340,9 +340,8 @@
     function showModal(){ overlay.classList.add("is-open"); btn.style.display = "none"; }
     function hideModal(){ overlay.classList.remove("is-open"); btn.style.display = ""; }
 
-    // iframeのサイズに合わせて開閉を同期
     function sync(){
-      if (!isEmbedded) return;
+      if (isStandalone) return;
       if (isExpanded()) showModal(); else hideModal();
     }
 
@@ -355,21 +354,19 @@
       catch (e) { return false; }
     }
 
-    // 単独ページとして開かれた場合
-    if (!isEmbedded) {
+    if (isStandalone) {
       document.body.classList.add("is-standalone");
       showModal();
     }
 
     btn.addEventListener("click", function(){
-      if (!isEmbedded) { showModal(); return; }
+      if (isStandalone) { showModal(); return; }
       if (!parentUrl || !navigateTop("#" + TARGET_ID)) { openStandalone(); return; }
-      // 親側の <style> が効いていれば iframe が広がる。広がらなければ新しいタブで案内
       setTimeout(function(){ if (!isExpanded()) openStandalone(); }, 500);
     });
 
     closeBtn.addEventListener("click", function(){
-      if (!isEmbedded) { hideModal(); return; }
+      if (isStandalone) { hideModal(); return; }
       if (!navigateTop("#")) hideModal();
     });
 
@@ -380,7 +377,6 @@
     window.addEventListener("resize", sync);
     sync();
 
-    // ---- 端末自動判定＆URLコピー ----
     var roots = document.querySelectorAll(".glo-bm");
     var root  = roots[roots.length - 1];
     if (!root) return;
